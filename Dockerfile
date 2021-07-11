@@ -3,9 +3,9 @@ FROM ubuntu
 LABEL maintainer "Cole McKnight <cbmckni@clemson.edu>"
 
 # update, base packages, requirements
-RUN apt-get update  &&  \
-    apt-get install -y git build-essential nano curl vim wget iperf3 traceroute iputils-ping && \
-    apt-get install -y g++ pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev software-properties-common libpcap-dev libsystemd-dev
+RUN apt-get update  &&  apt-get install -y \
+         git build-essential nano curl vim wget iperf3 traceroute iputils-ping \
+         g++ pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev software-properties-common libpcap-dev libsystemd-dev
 # sub install - tzdata
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
 
