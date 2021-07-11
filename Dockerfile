@@ -13,20 +13,39 @@ RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add 
 	&& apt-get update -qq \
 	&& apt-get install -qq -y kubectl
 
-# install ndn-cxx and NFD 
+# sub install - tzdata
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
-RUN apt install -y g++ software-properties-common pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev libpcap-dev 
-RUN add-apt-repository ppa:named-data/ppa && apt update
-RUN apt install -y ndn-cxx-dev nfd libndn-cxx python3-sphinx
 
+# install ndn-cxx
+RUN apt install -y g++ pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev
+RUN git clone https://github.com/named-data/ndn-cxx.git
+WORKDIR ndn-cxx
+RUN CXXFLAGS="-O1 -g3" ./waf configure --debug --with-tests
+RUN ./waf
+RUN ./waf install
+WORKDIR ..
 
-# install ndn-tools 
-RUN git clone https://github.com/susmit85/ndn-tools.git
+# install nfd
+RUN apt install -y software-properties-common libpcap-dev libsystemd-dev
+RUN add-apt-repository ppa:named-data/ppa
+RUN apt update
+RUN git clone --recursive https://github.com/named-data/NFD.git
+WORKDIR NFD
+RUN ./waf configure
+RUN ./waf
+RUN ./waf install
+WORKDIR ..
+
+# install ndn-tools
+RUN apt install -y libpcap-dev
+RUN git clone https://github.com/named-data/ndn-tools.git
 WORKDIR ndn-tools
 RUN ./waf configure
 RUN ./waf
 RUN ./waf install
 WORKDIR ..
+
+
 
 # initial configuration
 RUN cp /usr/local/etc/ndn/nfd.conf.sample /usr/local/etc/ndn/nfd.conf \
