@@ -3,29 +3,22 @@ LABEL maintainer "Cole McKnight <cbmckni@clemson.edu>"
 ARG VERSION_CXX=master
 ARG VERSION_NFD=master
 
-# install tools
-RUN  apt-get update \
-     && apt-get install -y git build-essential
+# base packages
+RUN apt-get update  &&  \
+    apt-get -y install git build-essential nano curl vim wget iperf3 traceroute iputils-ping 
 
-# install ndn-cxx and NFD dependencies
-RUN apt install -y g++ pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev 
+# kubectl
+RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+	&& echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list \
+	&& apt-get update -qq \
+	&& apt-get install -qq -y kubectl
 
-RUN git clone https://github.com/named-data/ndn-cxx.git 
-WORKDIR ndn-cxx
-RUN ./waf configure  # on CentOS, add --without-pch
-RUN ./waf
-RUN ./waf install
-WORKDIR ..
+# install ndn-cxx and NFD 
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
+RUN apt install -y g++ software-properties-common pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev libpcap-dev 
+RUN add-apt-repository ppa:named-data/ppa && apt update
+RUN apt install -y ndn-cxx-dev nfd libndn-cxx python3-sphinx
 
-# install NFD
-RUN apt -y install libpcap-dev
-
-RUN git clone https://github.com/named-data/NFD.git 
-WORKDIR NFD
-RUN ./waf configure --without-websocket 
-RUN ./waf
-RUN ./waf install
-WORKDIR ..
 
 # install ndn-tools 
 RUN git clone https://github.com/susmit85/ndn-tools.git
