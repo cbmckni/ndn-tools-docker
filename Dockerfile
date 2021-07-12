@@ -1,20 +1,19 @@
-# info
+# info and labels
 FROM ubuntu
 LABEL maintainer="Cole McKnight <cbmckni@clemson.edu>"
 LABEL description="This docker image is a simple pre-built for conducting NDN-related experiments."
 
-# base packages
-RUN apt-get -y -qq --no-install-recommends update \
+# packages
+RUN apt-get -y -qq update \
  && apt-get -y -qq --no-install-recommends install git build-essential nano curl vim wget iperf3 traceroute iputils-ping \
- && apt-get -y -qq --no-install-recommends install ca-certificates gnupg2
+ && apt-get -y -qq --no-install-recommends install ca-certificates gnupg2 \
+ && DEBIAN_FRONTEND="noninteractive" apt-get -y -qq --no-install-recommends install tzdata
+ 
 # kubectl
 RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
  && echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list \
  && apt-get -y -qq --no-install-recommends update \
  && apt-get -y -qq --no-install-recommends install kubectl
-
-# sub install - tzdata
-RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq --no-install-recommends install tzdata
 
 # clone all github repos
 RUN git clone https://github.com/named-data/ndn-cxx.git \
@@ -30,7 +29,7 @@ WORKDIR ..
 # install nfd
 RUN apt-get -y -qq --no-install-recommends install software-properties-common libpcap-dev libsystemd-dev
 RUN add-apt-repository ppa:named-data/ppa
-RUN apt update
+RUN apt -y -qq update
 WORKDIR NFD
 RUN ./waf configure && ./waf && ./waf install
 WORKDIR ..
