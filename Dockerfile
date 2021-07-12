@@ -1,20 +1,20 @@
 # info
 FROM ubuntu
 LABEL maintainer="Cole McKnight <cbmckni@clemson.edu>"
-LABEL description="This docker image is a pre-built for most NDN-related testing."
+LABEL description="This docker image is a simple pre-built for conducting NDN-related experiments."
 
 # base packages
-RUN apt-get update  &&  \
-    apt-get -y install git build-essential nano curl vim wget iperf3 traceroute iputils-ping 
-
+RUN apt-get -y -qq --no-install-recommends update \
+ && apt-get -y -qq --no-install-recommends install git build-essential nano curl vim wget iperf3 traceroute iputils-ping \
+ && apt-get -y -qq --no-install-recommends install ca-certificates gnupg2
 # kubectl
 RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-	&& echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list \
-	&& apt-get update -qq \
-	&& apt-get install -qq -y kubectl
+ && echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list \
+ && apt-get -y -qq --no-install-recommends update \
+ && apt-get -y -qq --no-install-recommends install kubectl
 
 # sub install - tzdata
-RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq --no-install-recommends install tzdata
 
 # clone all github repos
 RUN git clone https://github.com/named-data/ndn-cxx.git \
@@ -28,7 +28,7 @@ RUN CXXFLAGS="-O1 -g3" ./waf configure --debug --with-tests && ./waf && ./waf in
 WORKDIR ..
 
 # install nfd
-RUN apt install -y software-properties-common libpcap-dev libsystemd-dev
+RUN apt-get -y -qq --no-install-recommends install software-properties-common libpcap-dev libsystemd-dev
 RUN add-apt-repository ppa:named-data/ppa
 RUN apt update
 WORKDIR NFD
