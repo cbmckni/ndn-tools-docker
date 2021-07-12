@@ -1,6 +1,7 @@
 # info
 FROM ubuntu
-LABEL maintainer "Cole McKnight <cbmckni@clemson.edu>"
+LABEL maintainer="Cole McKnight <cbmckni@clemson.edu>"
+LABEL description="This docker image is a pre-built for most NDN-related testing."
 
 # base packages
 RUN apt-get update  &&  \
@@ -15,52 +16,42 @@ RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add 
 # sub install - tzdata
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
 
+# clone all github repos
+RUN git clone https://github.com/named-data/ndn-cxx.git \
+ && git clone --recursive https://github.com/named-data/NFD.git \
+ && git clone https://github.com/named-data/ndn-tools.git
 
 # install ndn-cxx
 RUN apt install -y g++ pkg-config python3-minimal libboost-all-dev libssl-dev libsqlite3-dev
-RUN git clone https://github.com/named-data/ndn-cxx.git
 WORKDIR ndn-cxx
-RUN CXXFLAGS="-O1 -g3" ./waf configure --debug --with-tests
-RUN ./waf
-RUN ./waf install
+RUN CXXFLAGS="-O1 -g3" ./waf configure --debug --with-tests && ./waf && ./waf install
 WORKDIR ..
 
 # install nfd
 RUN apt install -y software-properties-common libpcap-dev libsystemd-dev
 RUN add-apt-repository ppa:named-data/ppa
 RUN apt update
-RUN git clone --recursive https://github.com/named-data/NFD.git
 WORKDIR NFD
-RUN ./waf configure
-RUN ./waf
-RUN ./waf install
+RUN ./waf configure && ./waf && ./waf install
 WORKDIR ..
 
 # install ndn-tools
-RUN apt install -y libpcap-dev
-RUN git clone https://github.com/named-data/ndn-tools.git
 WORKDIR ndn-tools
-RUN ./waf configure
-RUN ./waf
-RUN ./waf install
+RUN ./waf configure && ./waf && ./waf install
 WORKDIR ..
 
-# initial configuration
+# initial configuration and setup
 RUN cp /usr/local/etc/ndn/nfd.conf.sample /usr/local/etc/ndn/nfd.conf \
     && ndnsec-keygen /`whoami` | ndnsec-install-cert - \
     && mkdir -p /usr/local/etc/ndn/keys \
     && ndnsec-cert-dump -i /`whoami` > default.ndncert \
-    && mv default.ndncert /usr/local/etc/ndn/keys/default.ndncert
-RUN mkdir /share \
-    && mkdir /logs
-# cleanup
-RUN apt autoremove \
-    && apt-get remove -y git build-essential python pkg-config
+    && mv default.ndncert /usr/local/etc/ndn/keys/default.ndncert \
+    && mkdir -p /share /logs
 EXPOSE 6363/tcp
 EXPOSE 6363/udp
 ENV CONFIG=/usr/local/etc/ndn/nfd.conf
-RUN mkdir -p /logs
 ENV LOG_FILE=/logs/nfd.log
+
 # Entrypoint
 RUN mkdir -p /workspace
 WORKDIR /workspace
