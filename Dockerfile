@@ -21,4 +21,4 @@ EXPOSE 6363/udp
 ENV CONFIG=/etc/ndn/nfd.conf
 ENV LOG_FILE=/logs/nfd.log
 WORKDIR /workspace
-ENTRYPOINT /usr/local/bin/nfd -c $CONFIG > $LOG_FILE 2>&1 & /bin/bash
+ENTRYPOINT /usr/bin/nfd -c $CONFIG > $LOG_FILE 2>&1 & /bin/bash
