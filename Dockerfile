@@ -14,7 +14,8 @@ RUN apt-get -y -qq update \
  && ndnsec-keygen /`whoami` | ndnsec-install-cert - \
  && mkdir -p /etc/ndn/keys /share /logs /workspace \
  && ndnsec-cert-dump -i /`whoami` > default.ndncert \
- && mv default.ndncert /etc/ndn/keys/default.ndncert
+ && mv default.ndncert /etc/ndn/keys/default.ndncert \
+ && setcap -r /usr/bin/nfd || true
 
 EXPOSE 6363/tcp
 EXPOSE 6363/udp
